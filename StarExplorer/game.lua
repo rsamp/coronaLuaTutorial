@@ -64,6 +64,10 @@ local backGroup
 local mainGroup
 local uiGroup
 
+local explosionSound
+local fireSound
+local musicTrack
+
 local function updateText()
     livesText.text = "Lives: " .. lives
     scoreText.text = "Score: " .. score
@@ -98,6 +102,7 @@ local function createAsteroid()
 end
 
 local function fireLaser()
+    audio.play(fireSound)
     local newLaser = display.newImageRect(mainGroup, objectSheet, 5, 14, 40)
     physics.addBody(newLaser, 'dynamic', { isSensor = true })
     newLaser.isBullet = true
@@ -177,6 +182,8 @@ local function onCollision(event)
             display.remove(obj1)
             display.remove(obj2)
 
+            audio.play(explosionSound)
+
             for i = #asteroidsTable, 1, 1 do
                 if (asteroidsTable[i] == obj1 or asteroidsTable[i] == obj2) then
                     table.remove(asteroidsTable, i)
@@ -191,18 +198,21 @@ local function onCollision(event)
         then
             if (died == false) then
                 died = true
+
+                audio.play(explosionSound)
+
+                lives = lives - 1
+                livesText.text = 'Lives: ' .. lives
+    
+                if (lives == 0) then
+                    display.remove(ship)
+                    timer.performWithDelay(2000, endGame)
+                else
+                    ship.alpha = 0
+                    timer.performWithDelay(1000, restoreShip)
+                end
             end
 
-            lives = lives - 1
-            livesText.text = 'Lives: ' .. lives
-
-            if (lives == 0) then
-				display.remove(ship)
-				timer.performWithDelay(2000, endGame)
-            else
-                ship.alpha = 0
-                timer.performWithDelay(1000, restoreShip)
-            end
         end
     end
 end
@@ -242,7 +252,11 @@ function scene:create( event )
 	scoreText = display.newText(uiGroup, 'Score: ' .. score, 400, 80, native.systemFont, 36)
 
 	ship:addEventListener('tap', fireLaser)
-	ship:addEventListener('touch', dragShip)
+    ship:addEventListener('touch', dragShip)
+    
+    explosionSound = audio.loadSound('audio/explosion.wav')
+    fireSound = audio.loadSound('audio/fire.wav')
+    musicTrack = audio.loadStream('audio/80s-Space-Game_Looping.wav')
 end
 
 
@@ -259,7 +273,8 @@ function scene:show( event )
 		-- Code here runs when the scene is entirely on screen
 		physics.start()
 		Runtime:addEventListener('collision', onCollision)
-		gameLoopTimer = timer.performWithDelay(500, gameLoop, 0)
+        gameLoopTimer = timer.performWithDelay(500, gameLoop, 0)
+        audio.play(musicTrack, { channel=1, loops=-1})
 	end
 end
 
@@ -277,7 +292,8 @@ function scene:hide( event )
 	elseif ( phase == "did" ) then
 		-- Code here runs immediately after the scene goes entirely off screen
 		Runtime:removeEventListener('collision', onCollision)
-		physics.pause()
+        physics.pause()
+        audio.stop(1)
 		composer.removeScene('game')
 	end
 end
@@ -287,7 +303,10 @@ end
 function scene:destroy( event )
 
 	local sceneGroup = self.view
-	-- Code here runs prior to the removal of scene's view
+    -- Code here runs prior to the removal of scene's view
+    audio.dispose(explosionSound)
+    audio.dispose(fireSound)
+    audio.dispose(musicTrack)
 
 end
 
