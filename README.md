@@ -6,6 +6,6 @@ I'm taking some time to learn Corona and Lua. This repo is for tutorials from ht
 
 <img src="readmeAssets/BalloonTap.gif" alt="Balloon Tap demo gif" width="200"/>
 
-## Chapter 2 - 7: Star Explorer
+## Chapter 2 - 8: Star Explorer
 
 <img src="readmeAssets/StarExplorer.gif" alt="Star Explorer demo gif" width="200"/>
